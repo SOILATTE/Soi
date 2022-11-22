@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hdcd.mapper.BoardMapper">
+
+	<resultMap type="Board" id="boardMap">
+		<id property="boardNo" column="board_no" />
+		<result property="boardNo" column="board_no" />
+		<result property="originNo" column="origin_no" />
+		<result property="groupLayer" column="group_layer" />
+		<result property="title" column="title" />
+		<result property="content" column="content" />
+		<result property="writer" column="writer" />
+		<result property="regDate" column="reg_date" />
+		<result property="updDate" column="upd_date" />
+		<result property="hitsNo" column="hits_no" />
+	</resultMap>
+
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()">
+				AND title LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'c'.toString()">
+				AND content LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'w'.toString()">
+				AND writer LIKE CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'tc'.toString()">
+				AND (	title LIKE CONCAT('%', #{keyword}, '%')
+						OR content LIKE CONCAT('%', #{keyword}, '%'))
+			</if>
+			<if test="searchType == 'cw'.toString()">
+				AND (	content LIKE CONCAT('%', #{keyword}, '%')
+						OR writer LIKE CONCAT('%', #{keyword}, '%'))
+			</if>
+			<if test="searchType == 'tcw'.toString()">
+				AND (	title LIKE CONCAT('%', #{keyword}, '%')
+						OR content LIKE CONCAT('%', #{keyword}, '%')
+						OR writer LIKE CONCAT('%', #{keyword}, '%'))
+			</if>
+		</if>
+	</sql>
+
+	<insert id="create">
+		INSERT INTO board
+			 (
+			   origin_no,
+			   group_layer,
+			   title,
+			   content,
+			   writer,
+			   reg_date,
+			   hits_no
+			 )
+		VALUES
+			 (
+			   #{originNo},
+			   #{groupLayer},
+			   #{title},
+			   #{content},
+			   #{writer},
+			   now(),
+			   0
+			   
+			 )
+	</insert>
+	
+	<select id="selectNewBoardNo" resultType="int">
+		SELECT max(board_no) + 1 
+		  FROM board	
+	</select>
+
+	<select id="read" resultType="Board">
+		SELECT board_no,
+			   title,
+			   content,
+			   writer,
+			   reg_date,
+			   upd_date
+		  FROM board
+		 WHERE board_no = #{boardNo}
+	</select>
+
+	<update id="update">
+		UPDATE board
+		   SET title =#{title},
+			   content =#{content},
+			   upd_date = now()
+		 WHERE board_no = #{boardNo}
+	</update>
+
+	<delete id="delete">
+		DELETE FROM board
+		 WHERE board_no = #{boardNo}
+	</delete>
+
+	<select id="list" resultType="Board">
+		<![CDATA[
+	 	SELECT board_no,
+	 		   origin_no,
+	 		   group_layer,
+	 		   title,
+	 		   content,
+	 		   writer,
+	 		   reg_date,
+			   upd_date,
+			   hits_no
+	 	  FROM board 
+	 	 WHERE board_no > 0
+		]]>
+	 	 
+	 	 <include refid="search"></include>
+	 	 
+		<![CDATA[
+	  ORDER BY origin_no DESC
+		 LIMIT #{pageStart}, #{sizePerPage}
+		]]>
+	</select>
+	
+	<select id="count" resultType="int">
+		<![CDATA[
+	 	SELECT count(board_no) 
+		  FROM board 
+		 WHERE board_no > 0 
+		]]>
+		
+		<include refid="search"></include>
+	</select>
+
+	<update id="updateHitsNo">
+		
+	 	UPDATE board SET hits_no= hits_no +1
+	 	where board_no = #{boardNo}
+		
+	</update>
+
+</mapper>

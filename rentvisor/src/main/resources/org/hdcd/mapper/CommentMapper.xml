@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace ="org.hdcd.mapper.CommentMapper">
+
+	<select id="list" resultType="Comment" parameterType="comment">
+		select commentId,content,writeDate,user_id 
+		from comment
+		where parentId = 0
+		and boardNo = #{boardNo}
+	</select>
+	
+	<select id="listPlus" resultType="Comment" parameterType="comment">
+		select commentId,parentId,content,writeDate,user_id
+		from comment
+		where parentId = #{parentId}
+		and boardNo = #{boardNo}
+		order by parentId
+	</select>
+	
+	<insert id="comment">
+		insert into comment(content,user_id,user_no,boardNo)
+		values(#{content},#{userId},#{userNo},#{boardNo})
+	</insert>
+	
+	<insert id="commentPlus" >
+		insert into comment(parentId,content,user_id,user_no,boardNo)
+		values(#{parentId},#{content},#{userId},#{userNo},#{boardNo})
+	</insert>
+	
+	<delete id="delComment">
+		delete from comment where commentId=#{commentId}
+	</delete>
+</mapper>
